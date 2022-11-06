@@ -35,11 +35,11 @@ jobs:
           gcloud compute ssh --zone="asia-south2-a" dep-vm
           --command="sudo rm -rf /opt/apache/apache-tomcat-10.1.1/webapps/target
           "
-      - name: Create target directory
-          run: >
-            gcloud compute ssh --zone="asia-south2-a" dep-vm
-            --command="sudo mkdir /opt/apache/apache-tomcat-10.1.1/webapps/target
-            "
+#      - name: Create target directory
+#          run: >
+#            gcloud compute ssh --zone="asia-south2-a" dep-vm
+#            --command="sudo mkdir /opt/apache/apache-tomcat-10.1.1/webapps/target
+#            "
 
       - name: Extracting the zip
         run: >
