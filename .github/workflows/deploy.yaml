@@ -24,9 +24,9 @@ jobs:
       - name: 'Setting up gcloud'
         uses: 'google-github-actions/setup-gcloud@v0'
 
-      - name: Zipping to deploy
-        run: zip -r target.zip target
+#      - name: Zipping to deploy
+#        run: zip -r target.zip target
 
-      - name: Deploying artifact
-        run: ls -la
+      - name: 'Deploying the zip'
+        run: gcloud compute scp --zone="asia-south2-a" target/lms-back-end-1.0.0.war root@dep-vm:~
 
