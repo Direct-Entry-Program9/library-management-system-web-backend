@@ -1,0 +1,17 @@
+name: "CI/CD Pipeline for LMS Back-End"
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checking out the repo
+        uses: actions/checkout@v3
+
+      - name: Testing GitHub Action
+        run: ls -la
