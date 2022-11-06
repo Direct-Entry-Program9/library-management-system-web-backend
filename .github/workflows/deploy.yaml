@@ -24,9 +24,19 @@ jobs:
       - name: 'Setting up gcloud'
         uses: 'google-github-actions/setup-gcloud@v0'
 
-#      - name: Zipping to deploy
-#        run: zip -r target.zip target
+      - name: Zipping to deploy
+        run: zip -r target.zip target
 
       - name: 'Deploying the zip'
-        run: gcloud compute scp --zone="asia-south2-a" target/lms-back-end-1.0.0.war root@dep-vm:~
+        run: gcloud compute scp --zone="asia-south2-a" target.zip root@dep-vm:/opt/apache/apache-tomcat-10.1.1/webapps
+
+      - name: Clean up old stuff
+        run: >
+          gcloud compute ssh --zone="asia-south2-a" dep-vm
+          --command="sudo rm -rf /opt/apache/apache-tomcat-10.1.1/webapps/target
+          "
+      - name: Extracting the zip
+        run: >
+          gcloud compute ssh --zone="asia-south2-a" dep-vm 
+          --command="sudo unzip /opt/apache/apache-tomcat-10.1.1/webapps/target.zip"
 
