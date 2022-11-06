@@ -36,11 +36,11 @@ jobs:
           --command="sudo rm -rf /opt/apache/apache-tomcat-10.1.1/webapps/target
           "
 
-      - name: shutdown server
-          run: >
-            gcloud compute ssh --zone="asia-south2-a" dep-vm
-            --command="./opt/apache/apache-tomcat-10.1.1/bin/shutdown.sh
-            "
+#      - name: shutdown server
+#          run: >
+#            gcloud compute ssh --zone="asia-south2-a" dep-vm
+#            --command="./opt/apache/apache-tomcat-10.1.1/bin/shutdown.sh
+#            "
 
       - name: Extracting the zip
         run: >
@@ -71,8 +71,8 @@ jobs:
           gcloud compute ssh --zone="asia-south2-a" dep-vm 
           --command="sudo cp /opt/apache/apache-tomcat-10.1.1/webapps/target/lms /opt/apache/apache-tomcat-10.1.1/webapps"
 
-      - name: Start server
-          run: >
-            gcloud compute ssh --zone="asia-south2-a" dep-vm
-            --command="./opt/apache/apache-tomcat-10.1.1/bin/startup.sh
-            "
+#      - name: Start server
+#          run: >
+#            gcloud compute ssh --zone="asia-south2-a" dep-vm
+#            --command="./opt/apache/apache-tomcat-10.1.1/bin/startup.sh
+#            "
