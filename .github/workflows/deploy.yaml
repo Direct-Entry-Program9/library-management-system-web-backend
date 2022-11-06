@@ -13,5 +13,8 @@ jobs:
       - name: Checking out the repo
         uses: actions/checkout@v3
 
+      - name: Create artifact for application
+        run: mvn compile package
+
       - name: Testing GitHub Action
         run: ls -la
