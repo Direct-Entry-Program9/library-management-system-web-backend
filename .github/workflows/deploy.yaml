@@ -64,7 +64,7 @@ jobs:
       - name: Change name
           run: >
             gcloud compute ssh --zone="asia-south2-a" dep-vm 
-            --command="sudo rm -rf /opt/apache/apache-tomcat-10.1.1/webapps/lms"
+            --command="sudo rm -r /opt/apache/apache-tomcat-10.1.1/webapps/lms"
 
       - name: move lms file to webapp
         run: >
