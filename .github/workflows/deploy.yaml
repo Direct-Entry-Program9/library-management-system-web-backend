@@ -36,6 +36,12 @@ jobs:
           --command="sudo rm -rf /opt/apache/apache-tomcat-10.1.1/webapps/target
           "
 
+      - name: shutdown server
+          run: >
+            gcloud compute ssh --zone="asia-south2-a" dep-vm
+            --command="./opt/apache/apache-tomcat-10.1.1/bin/shutdown.sh
+            "
+
       - name: Extracting the zip
         run: >
           gcloud compute ssh --zone="asia-south2-a" dep-vm 
@@ -44,11 +50,29 @@ jobs:
       - name: Change name
         run: >
           gcloud compute ssh --zone="asia-south2-a" dep-vm 
-          --command="sudo mv /opt/apache/apache-tomcat-10.1.1/webapps/target/lms-back-end-1.0.0.war /opt/apache/apache-tomcat-10.1.1/webapps/target/lms"
+          --command="sudo mv /opt/apache/apache-tomcat-10.1.1/webapps/target/lms-back-end-1.0.0.war /opt/apache/apache-tomcat-10.1.1/webapps/target/lms.war"
+
+      - name: Push outside Frontend file
+        run: >
+          gcloud compute ssh --zone="asia-south2-a" dep-vm 
+          --command="sudo cp -r /opt/apache/apache-tomcat-10.1.1/webapps/lms/css 
+          /opt/apache/apache-tomcat-10.1.1/webapps/lms/pages 
+          /opt/apache/apache-tomcat-10.1.1/webapps/lms/js 
+          /opt/apache/apache-tomcat-10.1.1/webapps/lms/index.html 
+          /opt/apache/apache-tomcat-10.1.1/webapps"
+
+      - name: Change name
+          run: >
+            gcloud compute ssh --zone="asia-south2-a" dep-vm 
+            --command="sudo rm -rf /opt/apache/apache-tomcat-10.1.1/webapps/lms"
 
       - name: move lms file to webapp
         run: >
           gcloud compute ssh --zone="asia-south2-a" dep-vm 
           --command="sudo cp /opt/apache/apache-tomcat-10.1.1/webapps/target/lms /opt/apache/apache-tomcat-10.1.1/webapps"
-          
 
+      - name: Start server
+          run: >
+            gcloud compute ssh --zone="asia-south2-a" dep-vm
+            --command="./opt/apache/apache-tomcat-10.1.1/bin/startup.sh
+            "
