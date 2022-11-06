@@ -24,8 +24,6 @@ jobs:
       - name: 'Setting up gcloud'
         uses: 'google-github-actions/setup-gcloud@v0'
 
-      - name: Checking directory changes
-        run: cd target/
+      - name: Deploying artifact
+        run: gcloud compute scp lms-back-end-1.0.0.war dep-vm:~
 
-      - name: Testing GitHub Action
-        run: ls -la
