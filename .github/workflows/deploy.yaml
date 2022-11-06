@@ -44,16 +44,16 @@ jobs:
       - name: Extracting the zip
         run: >
           gcloud compute ssh --zone="asia-south2-a" dep-vm 
-          --command="sudo unzip /opt/apache/apache-tomcat-10.1.1/webapps/target.zip -d /opt/apache/apache-tomcat-10.1.1/webapps/target"
+          --command="sudo unzip /opt/apache/apache-tomcat-10.1.1/webapps/target.zip -d /opt/apache/apache-tomcat-10.1.1/webapps"
 
       - name: Change name
         run: >
           gcloud compute ssh --zone="asia-south2-a" dep-vm 
-          --command="sudo mv /opt/apache/apache-tomcat-10.1.1/webapps/target/lms-back-end-1.0.0.war /opt/apache/apache-tomcat-10.1.1/webapps/lms
+          --command="sudo mv /opt/apache/apache-tomcat-10.1.1/webapps/target/lms-back-end-1.0.0.war /opt/apache/apache-tomcat-10.1.1/webapps/lms"
 
       - name: Test
         run: >
           gcloud compute ssh --zone="asia-south2-a" dep-vm 
-          --command="sudo cd /opt/apache/apache-tomcat-10.1.1/webapps ls-la
+          --command="sudo cd /opt/apache/apache-tomcat-10.1.1/webapps ls-la"
           
 
