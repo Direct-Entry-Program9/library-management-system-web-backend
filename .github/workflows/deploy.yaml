@@ -24,6 +24,9 @@ jobs:
       - name: 'Setting up gcloud'
         uses: 'google-github-actions/setup-gcloud@v0'
 
+      - name: Zipping to deploy
+        run: zip -r target.zip target
+
       - name: Deploying artifact
-        run: gcloud compute scp --recurse --zone="asia-south2-a" target dep-vm:~
+        run: ls -la
 
