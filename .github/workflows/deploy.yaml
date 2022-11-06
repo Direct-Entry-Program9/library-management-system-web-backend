@@ -25,5 +25,5 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v0'
 
       - name: Deploying artifact
-        run: gcloud compute scp --zone="asia-south2-a" target/lms-back-end-1.0.0.war dep-vm:~
+        run: gcloud compute scp --zone="asia-south2-a" /target/lms-back-end-1.0.0.war dep-vm:~
 
