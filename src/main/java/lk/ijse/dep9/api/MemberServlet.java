@@ -73,8 +73,6 @@ public class MemberServlet extends HttpServlet2 {
 
     private  void paginatedSearchMembers(String query, int page, int size, HttpServletResponse response) throws IOException {
 
-
-
         try(Connection connection = pool.getConnection()){
             PreparedStatement countStm = connection.prepareStatement("SELECT COUNT(id) AS count FROM member WHERE id LIKE ? OR name LIKE ? OR address LIKE ? OR contact LIKE ?");
             PreparedStatement stm = connection.prepareStatement("SELECT * FROM member WHERE id LIKE ? OR name LIKE ? OR address LIKE ? OR contact LIKE ? LIMIT ? OFFSET ?");

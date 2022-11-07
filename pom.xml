@@ -57,10 +57,10 @@
             <version>2.0.0</version>
             <scope>provided</scope>
         </dependency>
-
     </dependencies>
 
     <build>
+        <finalName>lms#api</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

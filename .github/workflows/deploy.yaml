@@ -1,4 +1,4 @@
-name: "CI/CD Pipeline for LMS Back-End"
+name: CI/CD Pipeline for LMS Back-End
 
 on:
   push:
@@ -8,71 +8,33 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      UPLOAD_DIR: /opt/apache/apache-tomcat-10.1.1/webapps
 
     steps:
-      - name: Checking out the repo
+      - name: Checking out the latest version from the repository
         uses: actions/checkout@v3
 
-      - name: Create artifact for application
-        run: mvn compile package
+      - name: Setting up the Java JDK
+        uses: actions/setup-java@v3.6.0
+        with:
+          java-version: 11
+          distribution: adopt
 
-      - name: 'Authenticate to Google Cloud'
+      - name: Packaging the web application
+        run: mvn package
+
+      - name: 'Authenticate to the GCP'
         uses: 'google-github-actions/auth@v0'
         with:
-          credentials_json: '${{ secrets.BACKEND_PRIVATE_KEY }}'
+          credentials_json: '${{ secrets.SERVICE_ACCOUNT_PRIVATE_KEY }}'
 
-      - name: 'Setting up gcloud'
+      - name: 'Setting up the gcloud'
         uses: 'google-github-actions/setup-gcloud@v0'
 
-      - name: Zipping to deploy
-        run: zip -r target.zip target
-
-      - name: 'Deploying the zip'
-        run: gcloud compute scp --zone="asia-south2-a" target.zip root@dep-vm:/opt/apache/apache-tomcat-10.1.1/webapps
-
-      - name: Clean up old stuff
-        run: >
-          gcloud compute ssh --zone="asia-south2-a" dep-vm
-          --command="sudo rm -rf /opt/apache/apache-tomcat-10.1.1/webapps/target
-          "
-
-#      - name: shutdown server
-#          run: >
-#            gcloud compute ssh --zone="asia-south2-a" dep-vm
-#            --command="./opt/apache/apache-tomcat-10.1.1/bin/shutdown.sh
-#            "
-
-      - name: Extracting the zip
+      - name: Cleaning up the old stuff
         run: >
           gcloud compute ssh --zone="asia-south2-a" dep-vm 
-          --command="sudo unzip /opt/apache/apache-tomcat-10.1.1/webapps/target.zip -d /opt/apache/apache-tomcat-10.1.1/webapps"
-
-      - name: Change name
-        run: >
-          gcloud compute ssh --zone="asia-south2-a" dep-vm 
-          --command="sudo mv /opt/apache/apache-tomcat-10.1.1/webapps/target/lms-back-end-1.0.0.war /opt/apache/apache-tomcat-10.1.1/webapps/target/lms.war"
-
-      - name: Push outside Frontend file
-        run: >
-          gcloud compute ssh --zone="asia-south2-a" dep-vm 
-          --command="sudo cp -r /opt/apache/apache-tomcat-10.1.1/webapps/lms/css 
-          /opt/apache/apache-tomcat-10.1.1/webapps/lms/pages 
-          /opt/apache/apache-tomcat-10.1.1/webapps/lms/js 
-          /opt/apache/apache-tomcat-10.1.1/webapps/lms/index.html 
-          /opt/apache/apache-tomcat-10.1.1/webapps"
-
-      - name: Change name
-          run: >
-            gcloud compute ssh --zone="asia-south2-a" dep-vm 
-            --command="sudo rm -r /opt/apache/apache-tomcat-10.1.1/webapps/lms"
-
-      - name: move lms file to webapp
-        run: >
-          gcloud compute ssh --zone="asia-south2-a" dep-vm 
-          --command="sudo cp /opt/apache/apache-tomcat-10.1.1/webapps/target/lms /opt/apache/apache-tomcat-10.1.1/webapps"
-
-#      - name: Start server
-#          run: >
-#            gcloud compute ssh --zone="asia-south2-a" dep-vm
-#            --command="./opt/apache/apache-tomcat-10.1.1/bin/startup.sh
-#            "
+          --command="sudo rm -rf $UPLOAD_DIR/lms#api.war $UPLOAD_DIR/lms#api"
+      - name: 'Deploying the war file'
+        run: gcloud compute scp --zone="asia-south2-a" target/lms#api.war root@dep-9-vm:$UPLOAD_DIR
