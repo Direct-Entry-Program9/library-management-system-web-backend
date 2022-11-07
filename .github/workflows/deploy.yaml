@@ -37,4 +37,4 @@ jobs:
           gcloud compute ssh --zone="asia-south2-a" dep-vm 
           --command="sudo rm -rf $UPLOAD_DIR/lms#api.war $UPLOAD_DIR/lms#api"
       - name: 'Deploying the war file'
-        run: gcloud compute scp --zone="asia-south2-a" target/lms#api.war root@dep-9-vm:$UPLOAD_DIR
+        run: gcloud compute scp --zone="asia-south2-a" target/lms#api.war root@dep-vm:$UPLOAD_DIR
