@@ -237,7 +237,6 @@ public class BookServlet extends HttpServlet2 {
                         response.sendError(HttpServletResponse.SC_CONFLICT,"Duplicate ISBN Not allowed");
                     }
 
-
                     PreparedStatement stm = connection.prepareStatement("INSERT INTO book (isbn,title,author,copies) VALUES (?,?,?,?)");
                     stm.setString(1, book.getIsbn());
                     stm.setString(2, book.getTitle());
