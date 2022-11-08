@@ -198,6 +198,7 @@ public class BookServlet extends HttpServlet2 {
                 String author = rst.getString("author");
                 int copies = rst.getInt("copies");
 
+                response.setHeader("Access-Control-Allow-Origin","*");
                 response.setContentType("application/json");
                 JsonbBuilder.create().toJson(new BookDTO(isbn1,title,author,copies),response.getWriter());
 
@@ -228,15 +229,26 @@ public class BookServlet extends HttpServlet2 {
                 }
 
                 try (Connection connection = pool.getConnection()) {
+
+                    PreparedStatement stm2 = connection.prepareStatement("SELECT * FROM book WHERE isbn=?");
+                    stm2.setString(1,book.getIsbn());
+                    ResultSet rst = stm2.executeQuery();
+                    if (rst.next()){
+                        response.sendError(HttpServletResponse.SC_CONFLICT,"Duplicate ISBN Not allowed");
+                    }
+
+
                     PreparedStatement stm = connection.prepareStatement("INSERT INTO book (isbn,title,author,copies) VALUES (?,?,?,?)");
                     stm.setString(1, book.getIsbn());
                     stm.setString(2, book.getTitle());
                     stm.setString(3, book.getAuthor());
                     stm.setInt(4,book.getCopies());
 
+
                     int affectedRows = stm.executeUpdate();
                     if (affectedRows == 1){
                         response.setStatus(HttpServletResponse.SC_CREATED);
+                        response.setHeader("Access-Control-Allow-Origin","*");
                         response.setContentType("application/json");
                         JsonbBuilder.create().toJson(book,response.getWriter());
                     }else {
@@ -267,6 +279,18 @@ public class BookServlet extends HttpServlet2 {
         }
     }
 
+    @Override
+    protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setHeader("Access-Control-Allow-Origin", "*");
+        resp.setHeader("Access-Control-Allow-Methods", "POST, GET, PATCH, DELETE, HEAD, OPTIONS, PUT");
+
+        String headers = req.getHeader("Access-Control-Request-Headers");
+        if (headers != null){
+            resp.setHeader("Access-Control-Allow-Headers", headers);
+            resp.setHeader("Access-Control-Expose-Headers", headers);
+        }
+    }
+
     private void updateBook(String isbn, HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             if (request.getContentType()==null ||!request.getContentType().startsWith("application/json")){
@@ -291,6 +315,7 @@ public class BookServlet extends HttpServlet2 {
 
                 int affectedRow = stm.executeUpdate();
                 if (affectedRow==1){
+                    response.setHeader("Access-Control-Allow-Origin","*");
                     response.setStatus(HttpServletResponse.SC_NO_CONTENT);
                 }else {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND,"Book doesn't exist");

@@ -327,7 +327,7 @@ public class MemberServlet extends HttpServlet2 {
 
         try {
             if (request.getContentType()==null || !request.getContentType().startsWith("application/json")){
-                throw new JsonbException("Invalid JSON File");
+                throw new JsonbException("Invalid JSOsuper.doOptions(req, resp);N File");
             }
 
             MemberDTO member = JsonbBuilder.create().fromJson(request.getReader(), MemberDTO.class);
