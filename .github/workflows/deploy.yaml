@@ -22,7 +22,7 @@ jobs:
           distribution: adopt
 
       - name: Packaging the web application
-        run: mvn package
+        run: mvn clean package
 
       - name: 'Authenticate to the GCP'
         uses: 'google-github-actions/auth@v0'
