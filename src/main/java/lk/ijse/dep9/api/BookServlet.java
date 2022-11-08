@@ -3,12 +3,12 @@ package lk.ijse.dep9.api;
 import jakarta.annotation.Resource;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbException;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import lk.ijse.dep9.api.util.HttpServlet2;
 import lk.ijse.dep9.dto.BookDTO;
-import lk.ijse.dep9.dto.MemberDTO;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -212,11 +212,96 @@ public class BookServlet extends HttpServlet2 {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.getWriter().println("Books: doPost()");
+        if (request.getPathInfo() == null || request.getPathInfo().equals("/")){
+            try {
+                if (request.getContentType() == null || !request.getContentType().startsWith("application/json")){
+                    throw new JsonbException("Invalid JSON");
+                }
+
+                BookDTO book = JsonbBuilder.create().fromJson(request.getReader(), BookDTO.class);
+                if (book.getIsbn() == null || !book.getIsbn().matches("^\\d{13}$")){
+                    throw new JsonbException("ISBN is empty or Invalid");
+                } else if (book.getTitle() == null || !book.getTitle().matches("^[A-Za-z., ]+$")) {
+                    throw new JsonbException("Title is empty or Invalid");
+                } else if (book.getAuthor() == null || !book.getAuthor().matches("^[A-Za-z. ]+$")) {
+                    throw new JsonbException("Author is empty or Invalid");
+                }
+
+                try (Connection connection = pool.getConnection()) {
+                    PreparedStatement stm = connection.prepareStatement("INSERT INTO book (isbn,title,author,copies) VALUES (?,?,?,?)");
+                    stm.setString(1, book.getIsbn());
+                    stm.setString(2, book.getTitle());
+                    stm.setString(3, book.getAuthor());
+                    stm.setInt(4,book.getCopies());
+
+                    int affectedRows = stm.executeUpdate();
+                    if (affectedRows == 1){
+                        response.setStatus(HttpServletResponse.SC_CREATED);
+                        response.setContentType("application/json");
+                        JsonbBuilder.create().toJson(book,response.getWriter());
+                    }else {
+                        throw new SQLException("Something Went Wrong");
+                    }
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            } catch (JsonbException e) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST,e.getMessage());
+            }
+        }else {
+            response.sendError(HttpServletResponse.SC_NOT_IMPLEMENTED);
+        }
     }
 
     @Override
-    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.getWriter().println("Books: doPatch()");
+    protected void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        if (request.getPathInfo()== null || request.getPathInfo().equals("/")){
+            response.sendError(HttpServletResponse.SC_NOT_IMPLEMENTED);
+            return;
+        }
+        Matcher matcher = Pattern.compile("^/(\\d{13}+)/?$").matcher(request.getPathInfo());
+        if (matcher.matches()){
+            updateBook(matcher.group(1),request,response);
+        }else {
+            response.sendError(HttpServletResponse.SC_NOT_IMPLEMENTED);
+        }
+    }
+
+    private void updateBook(String isbn, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            if (request.getContentType()==null ||!request.getContentType().startsWith("application/json")){
+                throw new JsonbException("Invalid JSON");
+            }
+
+            BookDTO book = JsonbBuilder.create().fromJson(request.getReader(), BookDTO.class);
+            if (book.getIsbn() == null || !isbn.equalsIgnoreCase(book.getIsbn())){
+                throw new JsonbException("ISBN is empty or invalid");
+            } else if (book.getTitle() == null || !book.getTitle().matches("^[A-Za-z., ]+$")) {
+                throw new JsonbException("Title is empty or Invalid");
+            } else if (book.getAuthor() == null || !book.getAuthor().matches("^[A-Za-z., ]+$")) {
+                throw new JsonbException("Author is empty or Invalid");
+            }
+
+            try (Connection connection = pool.getConnection()) {
+                PreparedStatement stm = connection.prepareStatement("UPDATE book SET title=?, author=?, copies=? WHERE isbn=?");
+                stm.setString(1,book.getTitle());
+                stm.setString(2,book.getAuthor());
+                stm.setInt(3,book.getCopies());
+                stm.setString(4,book.getIsbn());
+
+                int affectedRow = stm.executeUpdate();
+                if (affectedRow==1){
+                    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                }else {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND,"Book doesn't exist");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Fail to update book");
+            }
+
+        } catch (JsonbException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST,e.getMessage());
+        }
     }
 }

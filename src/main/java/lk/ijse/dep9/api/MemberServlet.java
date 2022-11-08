@@ -62,7 +62,7 @@ public class MemberServlet extends HttpServlet2 {
             }
         }else {
 
-            Matcher matcher = Pattern.compile("/([A-Fa-f0-9]{8}(-[A-Fa-f0-9]{4}){3}-[A-Fa-f0-9]{12})?/").matcher(request.getPathInfo());
+            Matcher matcher = Pattern.compile("/([A-Fa-f0-9]{8}(-[A-Fa-f0-9]{4}){3}-[A-Fa-f0-9]{12})/?").matcher(request.getPathInfo());
             if (matcher.matches()){
                 getMembersDetail(matcher.group(1),response);
             }else {
@@ -91,7 +91,7 @@ public class MemberServlet extends HttpServlet2 {
 
             ArrayList<MemberDTO> members = new ArrayList<>();
 
-            System.out.println(stm);
+
             ResultSet rst2 = stm.executeQuery();
             while (rst2.next()){
                 String id = rst2.getString("id");
@@ -100,7 +100,7 @@ public class MemberServlet extends HttpServlet2 {
                 String contact = rst2.getString("contact");
 
                 MemberDTO member = new MemberDTO(id, name, address, contact);
-                System.out.println(member);
+
                 members.add(member);
             }
 
@@ -210,6 +210,7 @@ public class MemberServlet extends HttpServlet2 {
                 String contact = rst.getString("contact");
 
                 response.setContentType("application/json");
+                response.setHeader("Access-Control-Allow-Origin","*");
                 JsonbBuilder.create().toJson(new MemberDTO(id,name,address,contact),response.getWriter());
 
             }else {
@@ -271,11 +272,23 @@ public class MemberServlet extends HttpServlet2 {
             response.sendError(HttpServletResponse.SC_NOT_IMPLEMENTED);
             return;
         }
-        Matcher matcher = Pattern.compile("/([A-Fa-f0-9]{8}(-[A-Fa-f0-9]{4}){3}-[A-Fa-f0-9]{12})?/").matcher(request.getPathInfo());
+        Matcher matcher = Pattern.compile("/([A-Fa-f0-9]{8}(-[A-Fa-f0-9]{4}){3}-[A-Fa-f0-9]{12})/?").matcher(request.getPathInfo());
         if (matcher.matches()){
             deleteMember(matcher.group(1),response);
         }else {
             response.sendError(HttpServletResponse.SC_NOT_IMPLEMENTED);
+        }
+    }
+
+    @Override
+    protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setHeader("Access-Control-Allow-Origin", "*");
+        resp.setHeader("Access-Control-Allow-Methods", "POST, GET, PATCH, DELETE, HEAD, OPTIONS, PUT");
+
+        String headers = req.getHeader("Access-Control-Request-Headers");
+        if (headers != null){
+            resp.setHeader("Access-Control-Allow-Headers", headers);
+            resp.setHeader("Access-Control-Expose-Headers", headers);
         }
     }
 
@@ -287,6 +300,7 @@ public class MemberServlet extends HttpServlet2 {
             if (affectedRow==0){
                 response.sendError(HttpServletResponse.SC_NOT_FOUND,"Invalid Member ID");
             }else {
+                response.setHeader("Access-Control-Allow-Origin","*");
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             }
         } catch (SQLException|IOException e) {
@@ -312,8 +326,8 @@ public class MemberServlet extends HttpServlet2 {
 
 
         try {
-            if (request.getContentType()==null ||!request.getContentType().startsWith("application/json")){
-                throw new JsonbException("Invalid JSON");
+            if (request.getContentType()==null || !request.getContentType().startsWith("application/json")){
+                throw new JsonbException("Invalid JSON File");
             }
 
             MemberDTO member = JsonbBuilder.create().fromJson(request.getReader(), MemberDTO.class);
@@ -336,6 +350,7 @@ public class MemberServlet extends HttpServlet2 {
 
                 int affectedRow = stm.executeUpdate();
                 if (affectedRow==1){
+                    response.setHeader("Access-Control-Allow-Origin","*");
                     response.setStatus(HttpServletResponse.SC_NO_CONTENT);
                 }else {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND,"Member doesn't exist");
