@@ -218,8 +218,18 @@ public class BookServlet extends HttpServlet2 {
                 if (request.getContentType() == null || !request.getContentType().startsWith("application/json")){
                     throw new JsonbException("Invalid JSON");
                 }
-
                 BookDTO book = JsonbBuilder.create().fromJson(request.getReader(), BookDTO.class);
+
+                try (Connection connection1 = pool.getConnection()) {
+                    PreparedStatement stm2 = connection1.prepareStatement("SELECT * FROM book WHERE isbn=?");
+                    stm2.setString(1,book.getIsbn());
+                    ResultSet rst = stm2.executeQuery();
+                    if (rst.next()){
+                        response.sendError(HttpServletResponse.SC_CONFLICT,"Duplicate ISBN Not allowed");
+                        return;
+                    }
+                }
+
                 if (book.getIsbn() == null || !book.getIsbn().matches("^\\d{13}$")){
                     throw new JsonbException("ISBN is empty or Invalid");
                 } else if (book.getTitle() == null || !book.getTitle().matches("^[A-Za-z., ]+$")) {
@@ -229,13 +239,6 @@ public class BookServlet extends HttpServlet2 {
                 }
 
                 try (Connection connection = pool.getConnection()) {
-
-                    PreparedStatement stm2 = connection.prepareStatement("SELECT * FROM book WHERE isbn=?");
-                    stm2.setString(1,book.getIsbn());
-                    ResultSet rst = stm2.executeQuery();
-                    if (rst.next()){
-                        response.sendError(HttpServletResponse.SC_CONFLICT,"Duplicate ISBN Not allowed");
-                    }
 
                     PreparedStatement stm = connection.prepareStatement("INSERT INTO book (isbn,title,author,copies) VALUES (?,?,?,?)");
                     stm.setString(1, book.getIsbn());
@@ -256,7 +259,7 @@ public class BookServlet extends HttpServlet2 {
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
-            } catch (JsonbException e) {
+            } catch (JsonbException | SQLException e) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST,e.getMessage());
             }
         }else {
